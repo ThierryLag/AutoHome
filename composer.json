@@ -1,14 +1,17 @@
 {
-    "name": "passtech/autohome",
-    "description": "PHP Sript for Home Automation with NHC",
-    "type": "cli",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Thierry Lagasse",
-            "email": "thierry@passtech.be"
-        }
-    ],
-    "minimum-stability": "stable",
-    "require": {}
+  "name": "passtech/autohome",
+  "description": "PHP Sript for Home Automation with NHC",
+  "type": "cli",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thierry Lagasse",
+      "email": "thierry@passtech.be"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {},
+  "autoload": {
+    "psr-4": {"Autohome\\": "src/Autohome/"}
+  }
 }
