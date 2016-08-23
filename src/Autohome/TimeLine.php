@@ -39,6 +39,7 @@ class Timeline
 
     /**
      * Initiate the Timeline Controller with options
+     * and grap day information from API or cached file
      *
      * @param array $options
      * @return self
@@ -78,40 +79,53 @@ class Timeline
 
             switch ($time) {
                 case self::TIME_SUNRISE:
-                    $timeline->isSunrise() && $timeline->execute($actions);
+                    $timeline->isSunrise() && (boolean) $timeline->execute($actions);
                     break;
 
                 case self::TIME_SUNSET:
-                    $timeline->isSunset() && $timeline->execute($actions);
+                    $timeline->isSunset() && (boolean) $timeline->execute($actions);
                     break;
 
                 case self::TIME_MIDNIGHT:
-                    $timeline->isMidnight() && $timeline->execute($actions);
+                    $timeline->isMidnight() && (boolean) $timeline->execute($actions);
                     break;
 
                 default:
-                    $timeline->isTime($time) && $timeline->execute($actions);
+                    $timeline->isTime($time) && (boolean) $timeline->execute($actions);
             }
         });
     }
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @return bool
+     */
     public function isSunrise()
     {
         return self::isTime($this->datas[ self::TIME_SUNRISE ]);
     }
 
+    /**
+     * @return bool
+     */
     public function isSunset()
     {
         return self::isTime($this->datas[ self::TIME_SUNSET ]);
     }
 
+    /**
+     * @return bool
+     */
     public function isMidnight()
     {
         return self::isTime( (new \DateTime(null, self::TIMEZONE_DEFAULT))->setTime(0, 0) );
     }
 
+    /**
+     * @param $time
+     * @return bool
+     */
     public function isTime($time)
     {
         $time = is_string($time)
@@ -120,13 +134,15 @@ class Timeline
         $now = (new \DateTime(null, $time->getTimezone()) )->format('H:i');
         $time = $time->format('H:i');
 
-        //printf("Time %s <> %s is %s\n", $now, $time, ($time == $now) ? 'NOW':'NOT now');
-
         return $time == $now;
     }
 
     // ================================================================================================================
 
+    /**
+     * @param bool $useCache Try to use datas from file or make Api call
+     * @return array
+     */
     private function loadDatas($useCache = false)
     {
         $todayFile = sprintf('%s/%s.json', $this->path, date('Ymd')) ;
@@ -154,7 +170,7 @@ class Timeline
             self::TIME_TWILIGHT_BEGIN   => $this->fromUtcDate($callDatas->results->civil_twilight_begin),
             self::TIME_SUNRISE          => $this->fromUtcDate($callDatas->results->sunrise),
             self::TIME_NOON             => $this->fromUtcDate($callDatas->results->solar_noon),
-            self::TIME_SUNSET          => $this->fromUtcDate($callDatas->results->sunset),
+            self::TIME_SUNSET           => $this->fromUtcDate($callDatas->results->sunset),
             self::TIME_TWILIGHT_END     => $this->fromUtcDate($callDatas->results->civil_twilight_end),
         ] : [];
     }
@@ -181,9 +197,13 @@ class Timeline
         )->setTimezone(new \DateTimeZone(self::TIMEZONE_DEFAULT));
     }
 
+    /**
+     * Loop over the actions match the current time
+     * and call the plugin to execute the action
+     */
     private function execute($actions = [])
     {
-        $states = array_map(function($action) {
+        return array_filter(array_map(function($action) {
             list($vendor, $plugin) = explode('_', $action['plugin']);
             $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin)) ;
 
@@ -191,8 +211,6 @@ class Timeline
             return class_exists($pluginClass)
                 && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))
                 && $pluginClass::execute($action);
-        }, $actions);
-
-        return (boolean) $states;
+        }, $actions));
     }
 }
