@@ -1,1 +1,15 @@
-/vendor/
+# OSX
+.DS_Store
+._*
+
+# PhpStorm
+.idea
+
+# Sublime Text
+*.sublime-*
+
+# Composer
+vendor
+
+# Personnal Notes
+extras/
