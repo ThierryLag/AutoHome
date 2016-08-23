@@ -183,7 +183,16 @@ class Timeline
 
     private function execute($actions = [])
     {
-        var_dump($actions);
-        return true;
+        $states = array_map(function($action) {
+            list($vendor, $plugin) = explode('_', $action['plugin']);
+            $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin)) ;
+
+            /* @var Plugins\PluginInterface $pluginClass */
+            return class_exists($pluginClass)
+                && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))
+                && $pluginClass::execute($action);
+        }, $actions);
+
+        return (boolean) $states;
     }
 }
