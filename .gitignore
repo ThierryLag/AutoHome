@@ -12,4 +12,4 @@
 vendor
 
 # Personnal settings
-#datas/*php
+datas/*php
