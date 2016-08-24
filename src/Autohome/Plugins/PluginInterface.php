@@ -9,6 +9,10 @@ interface PluginInterface
 {
     /**
      * Timeline plugin must implement execute method that will called by the Timeline controller.
+     *
+     * @param array $action
+     * @param array $options
+     * @return boolean
      */
-    public static function execute($options=[]);
+    public static function execute($action, $options = []);
 }

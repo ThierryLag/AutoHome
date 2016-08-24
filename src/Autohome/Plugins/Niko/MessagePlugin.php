@@ -3,9 +3,13 @@ namespace Autohome\Plugins\Niko;
 
 class MessagePlugin extends NikoPlugin
 {
-    public static function execute($options=[])
+    public static function execute($action, $options=[])
     {
-        echo "Message : " . $options['value'] . PHP_EOL;
+        $instance = self::load();
+
+        echo "Message : " . $action['value'] . PHP_EOL;
+
+        $instance->connectClose();
         return true;
     }
 }
