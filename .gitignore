@@ -10,3 +10,6 @@
 
 # Composer
 vendor
+
+# Personnal settings
+#datas/*php
