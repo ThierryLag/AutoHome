@@ -1,0 +1,15 @@
+<?php return [
+    'lat' => 50.60007,
+    'lng' => 5.35756,
+    'nhc' => 'http://127.0.0.1/',
+    'slack' => [
+        'hook' => 'https://hooks.slack.com/services/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',
+        'options' => [
+            'username' => 'Jarvis',
+            'channel' => '#home',
+            'icon' => ':joystick:',
+            'link_names' => true,
+            'allow_markdown' => true
+        ],
+    ],
+];
