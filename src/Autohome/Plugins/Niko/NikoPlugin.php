@@ -22,7 +22,7 @@ abstract class NikoPlugin implements PluginInterface
      * @param array $options
      * @return NikoPlugin
      */
-    public static function load($options=[])
+    public function __construct($options=[])
     {
         if(!static::$instance) {
             static::$instance = new static;
@@ -42,7 +42,7 @@ abstract class NikoPlugin implements PluginInterface
         return $this;
     }
 
-    public static function execute($action, $options=[])
+    public function execute($action)
     {
         return true;
     }

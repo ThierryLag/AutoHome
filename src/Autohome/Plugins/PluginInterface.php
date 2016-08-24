@@ -7,12 +7,13 @@ namespace Autohome\Plugins;
  */
 interface PluginInterface
 {
+    public function __construct($options=[]);
+
     /**
      * Timeline plugin must implement execute method that will called by the Timeline controller.
      *
      * @param array $action
-     * @param array $options
      * @return boolean
      */
-    public static function execute($action, $options = []);
+    public function execute($action);
 }

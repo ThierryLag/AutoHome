@@ -15,11 +15,13 @@ class Timeline
     const TIME_SUNSET = 'sunset';
     const TIME_TWILIGHT_END = 'twilight_end';
     const TIME_MIDNIGHT = 'midnight';
+    const TIME_ALWAYS = 'always';
 
     protected $path;
     protected $longitude;
     protected $latitude;
-    protected $datas;
+    protected $options;
+    protected $plugins;
 
     protected static $instance = null;
 
@@ -58,8 +60,11 @@ class Timeline
             ? $options['lat']
             : 0.0;
 
-        $reloadCache = isset($options['clear']) && $options['clear'];
-        $this->datas = $this->loadDatas($reloadCache);
+        $this->plugins = [];
+        $this->options = array_merge(
+            $this->loadDatas(isset($options['clear']) && $options['clear']),
+            $options
+        );
 
         return $this;
     }
@@ -78,20 +83,24 @@ class Timeline
             $time = trim(strtolower($time));
 
             switch ($time) {
+                case self::TIME_ALWAYS:
+                    $timeline->execute($actions);
+                    break;
+
                 case self::TIME_SUNRISE:
-                    $timeline->isSunrise() && (boolean) $timeline->execute($actions);
+                    $timeline->isSunrise() && $timeline->execute($actions);
                     break;
 
                 case self::TIME_SUNSET:
-                    $timeline->isSunset() && (boolean) $timeline->execute($actions);
+                    $timeline->isSunset() && $timeline->execute($actions);
                     break;
 
                 case self::TIME_MIDNIGHT:
-                    $timeline->isMidnight() && (boolean) $timeline->execute($actions);
+                    $timeline->isMidnight() && $timeline->execute($actions);
                     break;
 
                 default:
-                    $timeline->isTime($time) && (boolean) $timeline->execute($actions);
+                    $timeline->isTime($time) && $timeline->execute($actions);
             }
         });
     }
@@ -103,7 +112,7 @@ class Timeline
      */
     public function isSunrise()
     {
-        return self::isTime($this->datas[ self::TIME_SUNRISE ]);
+        return self::isTime($this->options[ self::TIME_SUNRISE ]);
     }
 
     /**
@@ -111,7 +120,7 @@ class Timeline
      */
     public function isSunset()
     {
-        return self::isTime($this->datas[ self::TIME_SUNSET ]);
+        return self::isTime($this->options[ self::TIME_SUNSET ]);
     }
 
     /**
@@ -203,14 +212,37 @@ class Timeline
      */
     private function execute($actions = [])
     {
-        return array_filter(array_map(function($action) {
-            list($vendor, $plugin) = explode('_', $action['plugin']);
-            $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin)) ;
+        $instance = $this;
 
-            /* @var Plugins\PluginInterface $pluginClass */
-            return class_exists($pluginClass)
-                && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))
-                && $pluginClass::execute($action);
+        return array_filter(array_map(function($action) use ($instance) {
+            if ($plugin = $instance->registerPlugin($action['plugin'])) {
+                return $plugin->execute($action);
+            }
         }, $actions));
+    }
+
+    /**
+     * Create and register plugin according his name
+     *
+     * @param $pluginName
+     * @return null|Plugins\PluginInterface
+     */
+    public function registerPlugin($pluginName)
+    {
+        if(array_key_exists($pluginName, $this->plugins)) {
+            return $this->plugins[$pluginName];
+        }
+
+        list($vendor, $plugin) = explode('_', $pluginName);
+        $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin)) ;
+
+        /* @var Plugins\PluginInterface $pluginClass */
+        if(class_exists($pluginClass) && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))) {
+            $this->plugins[$pluginName] = new $pluginClass($this->options);
+
+            return $this->plugins[$pluginName];
+        }
+
+        return null;
     }
 }

@@ -9,8 +9,10 @@
       "email": "thierry@passtech.be"
     }
   ],
-  "minimum-stability": "stable",
-  "require": {},
+  "minimum-stability": "dev",
+  "require": {
+    "maknz/slack": "^1.7"
+  },
   "autoload": {
     "psr-4": {"Autohome\\": "src/Autohome/"}
   }
