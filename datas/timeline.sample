@@ -1,21 +1,14 @@
 <?php return [
     'sunrise' => [
-        ['plugin' => 'slack_message', 'message' => 'Night mode : off'],
-        ['plugin' => 'niko_switch', 'id' => 4, 'value' => 'off'],
     ],
     '06:30' => [
-        ['plugin' => 'slack_message', 'message' => 'It\'s time to wake up, dude.'],
-        ['plugin' => 'niko_dimmer', 'id' => 6, 'value' => 100, 'speed' => 10],
     ],
     'sunset' => [
-        ['plugin' => 'niko_switch', 'id' => 4, 'value' => 'on'],
     ],
     '23:00' => [
-        ['plugin' => 'slack_message', 'message' => 'Night mode : on'],
-        ['plugin' => 'niko_switch', 'id' => 4, 'value' => 'off'],
     ],
 
     'always' => [
-        ['plugin' => 'slack_message', 'message' => 'One more annoying test message.'],
+        ['plugin' => 'slack_message', 'message' => 'Test message'],
     ]
 ];
