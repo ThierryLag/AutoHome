@@ -80,15 +80,10 @@ class Timeline
     {
         $timeline = $this;
         array_walk($timedActions, function($actions, $time) use ($timeline) {
+
+            if (!$this->isActive($actions)) { return false; }
+
             $time = trim(strtolower($time));
-
-            if(isset($actions['days'])) {
-                 if(!in_array(strtolower(date('D')), explode(' ', strtolower($actions['days'])))) {
-                    return false;
-                }
-                unset($actions['days']);
-            }
-
             switch ($time) {
                 case self::TIME_ALWAYS:
                     $timeline->execute($actions);
@@ -114,6 +109,25 @@ class Timeline
     }
 
     // ----------------------------------------------------------------------------------------------------------------
+
+    public function isActive(&$actions)
+    {
+        if (isset($actions['disable'])) {
+            if(false !== strpos('yes oui 1', strtolower($actions['disable']))) {
+                return false;
+            }
+            unset($actions['disable']);
+        }
+
+        if(isset($actions['days'])) {
+            if(!in_array(strtolower(date('D')), explode(' ', strtolower($actions['days'])))) {
+                return false;
+            }
+            unset($actions['days']);
+        }
+
+        return true;
+    }
 
     /**
      * @return bool
