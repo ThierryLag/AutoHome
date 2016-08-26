@@ -9,11 +9,11 @@ class Timeline
     const TIMEZONE_DEFAULT = 'Europe/Brussels';
     const TODAY_FILES_PATH = '/tmp';
 
-    const TIME_DAWN = 'twilight_begin';
+    const TIME_DAWN = 'dawn';
     const TIME_SUNRISE = 'sunrise';
     const TIME_NOON = 'noon';
     const TIME_SUNSET = 'sunset';
-    const TIME_DUSK = 'twilight_end';
+    const TIME_DUSK = 'dusk';
     const TIME_MIDNIGHT = 'midnight';
     const TIME_ALWAYS = 'always';
 
