@@ -1,0 +1,19 @@
+---
+# App general
+timezone: UTC
+lat: 50.0,
+lng: 5.0,
+
+# Niko Plugin
+niko:
+    url: http://127.0.0.1/
+
+# Slack Plugin
+slack:
+    hook: https://hooks.slack.com/...
+    options:
+        username: Bot
+        channel: #general
+        icon: :computer:
+        link_names: yes
+        allow_markdown: yes
