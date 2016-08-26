@@ -9,11 +9,11 @@ class Timeline
     const TIMEZONE_DEFAULT = 'Europe/Brussels';
     const TODAY_FILES_PATH = '/tmp';
 
-    const TIME_TWILIGHT_BEGIN = 'twilight_begin';
+    const TIME_DAWN = 'twilight_begin';
     const TIME_SUNRISE = 'sunrise';
     const TIME_NOON = 'noon';
     const TIME_SUNSET = 'sunset';
-    const TIME_TWILIGHT_END = 'twilight_end';
+    const TIME_DUSK = 'twilight_end';
     const TIME_MIDNIGHT = 'midnight';
     const TIME_ALWAYS = 'always';
 
@@ -89,12 +89,19 @@ class Timeline
                     $timeline->execute($actions);
                     break;
 
+                case self::TIME_DAWN:
+                    $timeline->isDawn() && $timeline->execute($actions);
+                    break;
                 case self::TIME_SUNRISE:
                     $timeline->isSunrise() && $timeline->execute($actions);
                     break;
 
                 case self::TIME_SUNSET:
                     $timeline->isSunset() && $timeline->execute($actions);
+                    break;
+
+                case self::TIME_DUSK:
+                    $timeline->isDusk() && $timeline->execute($actions);
                     break;
 
                 case self::TIME_MIDNIGHT:
@@ -132,6 +139,14 @@ class Timeline
     /**
      * @return bool
      */
+    public function isDawn()
+    {
+        return self::isTime($this->options[ self::TIME_DAWN ]);
+    }
+
+    /**
+     * @return bool
+     */
     public function isSunrise()
     {
         return self::isTime($this->options[ self::TIME_SUNRISE ]);
@@ -143,6 +158,14 @@ class Timeline
     public function isSunset()
     {
         return self::isTime($this->options[ self::TIME_SUNSET ]);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDusk()
+    {
+        return self::isTime($this->options[ self::TIME_DUSK]);
     }
 
     /**
@@ -199,11 +222,11 @@ class Timeline
         $callDatas = json_decode(self::curlCall($callUrl));
 
         return $callDatas->status == 'OK' ? [
-            self::TIME_TWILIGHT_BEGIN   => $this->fromUtcDate($callDatas->results->civil_twilight_begin),
-            self::TIME_SUNRISE          => $this->fromUtcDate($callDatas->results->sunrise),
-            self::TIME_NOON             => $this->fromUtcDate($callDatas->results->solar_noon),
-            self::TIME_SUNSET           => $this->fromUtcDate($callDatas->results->sunset),
-            self::TIME_TWILIGHT_END     => $this->fromUtcDate($callDatas->results->civil_twilight_end),
+            self::TIME_DAWN     => $this->fromUtcDate($callDatas->results->civil_twilight_begin),
+            self::TIME_SUNRISE  => $this->fromUtcDate($callDatas->results->sunrise),
+            self::TIME_NOON     => $this->fromUtcDate($callDatas->results->solar_noon),
+            self::TIME_SUNSET   => $this->fromUtcDate($callDatas->results->sunset),
+            self::TIME_DUSK     => $this->fromUtcDate($callDatas->results->civil_twilight_end),
         ] : [];
     }
 
