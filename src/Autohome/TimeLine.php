@@ -109,6 +109,7 @@ class Timeline
                 default:
                     $timeline->isTime($time) && $timeline->execute($actions);
             }
+            return false;
         });
     }
 
@@ -217,6 +218,9 @@ class Timeline
     /**
      * Loop over the actions match the current time
      * and call the plugin to execute the action
+     *
+     * @param array $actions
+     * @return array
      */
     private function execute($actions = [])
     {
@@ -226,6 +230,7 @@ class Timeline
             if ($plugin = $instance->registerPlugin($plugin)) {
                 return $plugin->execute($action);
             }
+            return null;
         }, array_keys($actions), $actions));
     }
 
