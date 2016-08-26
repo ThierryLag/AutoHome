@@ -7,10 +7,7 @@ class SwitchPlugin extends NikoPlugin
     {
         // TODO : Add exception implementation
         isset($action['id']) or die('Action switch must have an ID');
-
-        $this->connectCall(
-            sprintf('action/%d/%d', $action['id'], $action['value'] ?: 0)
-        );
+        $this->connectCall(sprintf('action/%d/%d', $action['id'], $action['value'] ?: 0));
 
         return true;
     }

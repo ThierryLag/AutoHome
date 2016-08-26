@@ -12,7 +12,6 @@ use Autohome\Plugins\PluginInterface;
  */
 abstract class NikoPlugin implements PluginInterface
 {
-    protected static $instance = null;
     protected $connect;
     protected $nikoweb;
 
@@ -24,10 +23,7 @@ abstract class NikoPlugin implements PluginInterface
      */
     public function __construct($options=[])
     {
-        if(!static::$instance) {
-            static::$instance = new static;
-        }
-        return static::$instance->init($options);
+        $this->init($options);
     }
 
     /**
@@ -65,6 +61,8 @@ abstract class NikoPlugin implements PluginInterface
     protected function connectCall($url='')
     {
         $url = sprintf('%s/%s', $this->nikoweb, $url);
+        echo $url, PHP_EOL;
+
         curl_setopt($this->connect, CURLOPT_URL, $url);
         return curl_exec($this->connect);
     }
