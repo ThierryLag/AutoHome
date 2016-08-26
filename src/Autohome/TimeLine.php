@@ -82,6 +82,13 @@ class Timeline
         array_walk($timedActions, function($actions, $time) use ($timeline) {
             $time = trim(strtolower($time));
 
+            if(isset($actions['days'])) {
+                 if(!in_array(strtolower(date('D')), explode(' ', strtolower($actions['days'])))) {
+                    return false;
+                }
+                unset($actions['days']);
+            }
+
             switch ($time) {
                 case self::TIME_ALWAYS:
                     $timeline->execute($actions);
@@ -128,7 +135,7 @@ class Timeline
      */
     public function isMidnight()
     {
-        return self::isTime( (new \DateTime(null, self::TIMEZONE_DEFAULT))->setTime(0, 0) );
+        return self::isTime( (new \DateTime)->setTime(0, 0) );
     }
 
     /**
@@ -138,9 +145,9 @@ class Timeline
     public function isTime($time)
     {
         $time = is_string($time)
-            ? \DateTime::createFromFormat('H:i', $time, new \DateTimeZone(self::TIMEZONE_DEFAULT))
+            ? \DateTime::createFromFormat('H:i', $time)
             : $time;
-        $now = (new \DateTime(null, $time->getTimezone()) )->format('H:i');
+        $now = (new \DateTime)->format('H:i');
         $time = $time->format('H:i');
 
         return $time == $now;
@@ -155,11 +162,12 @@ class Timeline
     private function loadDatas($useCache = false)
     {
         $todayFile = sprintf('%s/%s.json', $this->path, date('Ymd')) ;
+        $timeZone = (new \DateTime())->getTimezone();
 
         if ($useCache && file_exists($todayFile)) {
             $datas = (array) json_decode(file_get_contents($todayFile));
-            array_walk($datas, function(&$date) {
-                $date = new \DateTime($date->date, new \DateTimeZone('UTC'));
+            array_walk($datas, function(&$date) use ($timeZone) {
+                $date = new \DateTime($date->date, $timeZone);
             });
         }
         else {
@@ -203,7 +211,7 @@ class Timeline
             'h:i:s a',
             strtolower($dateString),
             new \DateTimeZone('UTC')
-        )->setTimezone(new \DateTimeZone(self::TIMEZONE_DEFAULT));
+        )->setTimezone( (new \DateTime)->getTimezone() );
     }
 
     /**
@@ -214,11 +222,11 @@ class Timeline
     {
         $instance = $this;
 
-        return array_filter(array_map(function($action) use ($instance) {
-            if ($plugin = $instance->registerPlugin($action['plugin'])) {
+        return array_filter(array_map(function($plugin, $action) use ($instance) {
+            if ($plugin = $instance->registerPlugin($plugin)) {
                 return $plugin->execute($action);
             }
-        }, $actions));
+        }, array_keys($actions), $actions));
     }
 
     /**
@@ -238,7 +246,7 @@ class Timeline
 
         /* @var Plugins\PluginInterface $pluginClass */
         if(class_exists($pluginClass) && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))) {
-            $this->plugins[$pluginName] = new $pluginClass($this->options);
+            $this->plugins[$pluginName] = new $pluginClass($this->options[$vendor]);
 
             return $this->plugins[$pluginName];
         }

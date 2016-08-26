@@ -36,7 +36,7 @@ abstract class NikoPlugin implements PluginInterface
      */
     public function init($options=[])
     {
-        $this->nikoweb = $options['nikoweb'] ?: 'http://0.0.0.0';
+        $this->nikoweb = $options['url'] ?: 'http://0.0.0.0';
         $this->connectInit();
 
         return $this;

@@ -17,14 +17,19 @@ class MessagePlugin implements PluginInterface
     public function __construct($options = [])
     {
         $this->slack = new SlackClient(
-            $options['slack']['hook'],
-            $options['slack']['options']
+            $options['hook'],
+            $options['options']
         );
     }
 
     public function execute($action)
     {
-        $this->slack->send($action['message']);
+        if($action['message']) {
+            $message = $this->slack->createMessage();
+            isset($action['to']) && $message->to($action['to']);
+
+            $message->send($action['message']);
+        }
         return true;
     }
 }
