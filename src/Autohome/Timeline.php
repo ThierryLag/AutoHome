@@ -165,7 +165,7 @@ class Timeline
      */
     public function isDusk()
     {
-        return self::isTime($this->options[ self::TIME_DUSK]);
+        return self::isTime($this->options[ self::TIME_DUSK ]);
     }
 
     /**
@@ -185,6 +185,7 @@ class Timeline
         $time = is_string($time)
             ? \DateTime::createFromFormat('H:i', $time)
             : $time;
+
         $now = (new \DateTime)->format('H:i');
         $time = $time->format('H:i');
 
