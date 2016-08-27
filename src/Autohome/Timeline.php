@@ -92,6 +92,7 @@ class Timeline
                 case self::TIME_DAWN:
                     $timeline->isDawn() && $timeline->execute($actions);
                     break;
+
                 case self::TIME_SUNRISE:
                     $timeline->isSunrise() && $timeline->execute($actions);
                     break;
@@ -141,6 +142,7 @@ class Timeline
      */
     public function isDawn()
     {
+        echo '---- DAWN [', $this->options[ self::TIME_DAWN ]->format('H:i'), '] ----', PHP_EOL;
         return self::isTime($this->options[ self::TIME_DAWN ]);
     }
 
@@ -149,6 +151,7 @@ class Timeline
      */
     public function isSunrise()
     {
+        echo '---- SUNRISE [', $this->options[ self::TIME_SUNRISE ]->format('H:i'), '] ----', PHP_EOL;
         return self::isTime($this->options[ self::TIME_SUNRISE ]);
     }
 
@@ -157,6 +160,7 @@ class Timeline
      */
     public function isSunset()
     {
+        echo '---- SUNSET [', $this->options[ self::TIME_SUNSET ]->format('H:i'), '] ----', PHP_EOL;
         return self::isTime($this->options[ self::TIME_SUNSET ]);
     }
 
@@ -165,6 +169,7 @@ class Timeline
      */
     public function isDusk()
     {
+        echo '---- DUSK [', $this->options[ self::TIME_DUSK ]->format('H:i'), '] ----', PHP_EOL;
         return self::isTime($this->options[ self::TIME_DUSK ]);
     }
 
@@ -173,6 +178,7 @@ class Timeline
      */
     public function isMidnight()
     {
+        echo '---- MIDNIGHT [00:00] ----', PHP_EOL;
         return self::isTime( (new \DateTime)->setTime(0, 0) );
     }
 
@@ -182,12 +188,13 @@ class Timeline
      */
     public function isTime($time)
     {
-        $time = is_string($time)
-            ? \DateTime::createFromFormat('H:i', $time)
-            : $time;
+        if($time instanceof \DateTime) {
+            $time = $time->format('H:i');
+        }
 
-        $now = (new \DateTime)->format('H:i');
-        $time = $time->format('H:i');
+        $now = isset($this->options['debug']['time'])
+            ? $this->options['debug']['time']
+            : (new \DateTime)->format('H:i');
 
         return $time == $now;
     }
@@ -264,12 +271,12 @@ class Timeline
     {
         $instance = $this;
 
-        return array_filter(array_map(function($plugin, $action) use ($instance) {
-            if ($plugin = $instance->registerPlugin($plugin)) {
+        return array_filter(array_map(function($action) use ($instance) {
+            if ($plugin = $instance->registerPlugin($action['action'])) {
                 return $plugin->execute($action);
             }
-            return null;
-        }, array_keys($actions), $actions));
+            return false;
+        }, $actions));
     }
 
     /**

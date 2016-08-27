@@ -8,7 +8,7 @@ use \Autohome\Timeline;
 $config = new Vars(__DIR__ . '/../config/app.yml', ['cache' => false]);
 $timeline = new Vars(__DIR__ . '/../config/timeline.yml', ['cache' => false]);
 
-//echo '<pre>', print_r($timeline->getContent(), true), '</pre>'; exit;
+//echo '<pre>', print_r((array) $timeline, true), '</pre>'; exit;
 
 Timeline::load($config->getContent())
         ->start($timeline->getContent());

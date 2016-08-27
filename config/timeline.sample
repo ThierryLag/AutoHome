@@ -1,34 +1,34 @@
 ---
 sunrise:
-    slack_message:
-        message: Night mode off
-    niko_switch:
-        id: 12
-        value: off
+  - action: slack_message
+    message: Night mode off
+  - action: niko_switch
+    id: 12
+    value: off
 
 # -------------------------------------
 '06:30':
-    days: mon tue wed thu fri
-    slack_message:
-        message: Wake UP !
-    niko_switch:
-        id: 6
-        value: on
-    niko_switch:
-        id: 14
-        value: on
+  - days: mon tue wed thu fri
+  - action: slack_message
+    message: Wake UP !
+  - action: niko_switch
+    id: 6
+    value: on
+  - action: niko_switch
+    id: 14
+    value: on
 
 # -------------------------------------
 sunset:
-    niko_switch:
-        id: 4
-        value: on
+  - action: niko_switch
+    id: 4
+    value: on
 
 # -------------------------------------
 midnight:
-    slack_message:
-        message: Night mode on
-    niko_switch:
-        id: 4
-        value: off
+  - action: slack_message
+    message: Night mode on
+  - action: niko_switch
+    id: 4
+    value: off
 
