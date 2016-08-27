@@ -1,6 +1,8 @@
 <?php
 namespace Autohome;
 
+use Autohome\Plugins\PluginException;
+
 /**
  * TimeLine Controller Script
  */
@@ -78,63 +80,74 @@ class Timeline
      */
     public function start($timedActions = [])
     {
-        $timeline = $this;
-        array_walk($timedActions, function($actions, $time) use ($timeline) {
+        try
+        {
+            $timeline = $this;
+            array_walk($timedActions, function($actions, $time) use ($timeline) {
 
-            if (!$this->isActive($actions)) { return false; }
+                if (!$this->isActive($actions) || !$this->isCurrentDay($actions)) {
+                    return false;
+                }
 
-            $time = trim(strtolower($time));
-            switch ($time) {
-                case self::TIME_ALWAYS:
-                    $timeline->execute($actions);
-                    break;
+                $time = trim(strtolower($time));
+                switch ($time) {
+                    case self::TIME_ALWAYS:
+                        $timeline->execute($actions);
+                        break;
 
-                case self::TIME_DAWN:
-                    $timeline->isDawn() && $timeline->execute($actions);
-                    break;
+                    case self::TIME_DAWN:
+                        $timeline->isDawn() && $timeline->execute($actions);
+                        break;
 
-                case self::TIME_SUNRISE:
-                    $timeline->isSunrise() && $timeline->execute($actions);
-                    break;
+                    case self::TIME_SUNRISE:
+                        $timeline->isSunrise() && $timeline->execute($actions);
+                        break;
 
-                case self::TIME_SUNSET:
-                    $timeline->isSunset() && $timeline->execute($actions);
-                    break;
+                    case self::TIME_SUNSET:
+                        $timeline->isSunset() && $timeline->execute($actions);
+                        break;
 
-                case self::TIME_DUSK:
-                    $timeline->isDusk() && $timeline->execute($actions);
-                    break;
+                    case self::TIME_DUSK:
+                        $timeline->isDusk() && $timeline->execute($actions);
+                        break;
 
-                case self::TIME_MIDNIGHT:
-                    $timeline->isMidnight() && $timeline->execute($actions);
-                    break;
+                    case self::TIME_MIDNIGHT:
+                        $timeline->isMidnight() && $timeline->execute($actions);
+                        break;
 
-                default:
-                    $timeline->isTime($time) && $timeline->execute($actions);
-            }
-            return false;
-        });
+                    default:
+                        $timeline->isTime($time) && $timeline->execute($actions);
+                }
+                return false;
+            });
+        }
+        catch (PluginException $e) {
+            echo 'ERROR: ', $e->getFile(), ' : ', $e->getMessage(), PHP_EOL;
+        }
     }
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @param array $actions
+     * @return bool
+     */
     public function isActive(&$actions)
     {
-        if (isset($actions['disable'])) {
-            if(false !== strpos('yes oui 1', strtolower($actions['disable']))) {
-                return false;
-            }
-            unset($actions['disable']);
-        }
+        return $this->validate($actions, 'disable', function($action) {
+            return false === strpos('yes oui 1', strtolower($action));
+        });
+    }
 
-        if(isset($actions['days'])) {
-            if(!in_array(strtolower(date('D')), explode(' ', strtolower($actions['days'])))) {
-                return false;
-            }
-            unset($actions['days']);
-        }
-
-        return true;
+    /**
+     * @param array $actions
+     * @return bool
+     */
+    public function isCurrentDay(&$actions)
+    {
+        return $this->validate($actions, 'days', function($action) {
+            return in_array(strtolower(date('D')), explode(' ', strtolower($action)));
+        });
     }
 
     /**
@@ -200,6 +213,19 @@ class Timeline
     }
 
     // ================================================================================================================
+
+    private function validate(&$actions, $test, $callback)
+    {
+        foreach ($actions as $index => $action) {
+            if (isset($action[$test])) {
+                if(!$callback($action[$test])) {
+                    return false;
+                }
+                unset($actions[$index]);
+            }
+        }
+        return true;
+    }
 
     /**
      * @param bool $useCache Try to use datas from file or make Api call

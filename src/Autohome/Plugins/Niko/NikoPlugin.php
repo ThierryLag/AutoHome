@@ -1,25 +1,23 @@
 <?php
 namespace Autohome\Plugins\Niko;
 use Autohome\Plugins\PluginInterface;
+use Autohome\Plugins\Niko\Exceptions\NikoPluginException;
 
 /**
  * Class NikoPlugin
  *
  * @package Autohome\Plugins\Niko
  *
- * @property resource $connect
- * @property string $nikoweb
+ * @property resource $socket
  */
 abstract class NikoPlugin implements PluginInterface
 {
-    protected $connect;
-    protected $nikoweb;
+    protected $socket;
 
     // ----------------------------------------------------------------------------------------------------------------
 
     /**
      * @param array $options
-     * @return NikoPlugin
      */
     public function __construct($options=[])
     {
@@ -29,11 +27,29 @@ abstract class NikoPlugin implements PluginInterface
     /**
      * @param array $options
      * @return $this
+     * @throws NikoPluginException
      */
     public function init($options=[])
     {
-        $this->nikoweb = $options['url'] ?: 'http://0.0.0.0';
-        $this->connectInit();
+        if (false === ($this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))) {
+            throw new NikoPluginException("Unable to create the socket", 1);
+        }
+
+        if (!isset($options['address']) || !$options['address']) {
+            throw new NikoPluginException("No address specified.", 1);
+        }
+
+        if (strpos($options['address'], ':')) {
+            list($address, $port) = explode(':', $options['address']);
+        }
+        else {
+            $address = $options['address'];
+            $port = isset($options['port']) ? $options['port'] : 8000;
+        }
+
+        if (false === socket_connect($this->socket, $address, $port)) {
+            throw new NikoPluginException("Unable to connect the socket", 1);
+        }
 
         return $this;
     }
@@ -45,30 +61,43 @@ abstract class NikoPlugin implements PluginInterface
 
     // ================================================================================================================
 
-    protected function connectInit()
+    /**
+     * Send message to NHC
+     *
+     * @param $message
+     *
+     * @return string
+     * @throws NikoPluginException
+     */
+    protected function send($message)
     {
-        if(!$this->connect) {
-            $this->connect = curl_init();
-
-            curl_setopt($this->connect, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($this->connect, CURLOPT_HEADER, false);
-            curl_setopt($this->connect, CURLOPT_FOLLOWLOCATION, true);
+        if (false === socket_write($this->socket, $message, strlen($message))) {
+            throw new NikoPluginException("Error while sending the command", 1);
         }
 
-        return $this;
+        $response = '';
+        do {
+            $bytes = socket_recv($this->socket, $out, 256, 0);
+            $response .= trim($out);
+        }
+        while ($bytes == 0 || $bytes == 256);
+
+        return $response;
     }
 
-    protected function connectCall($url='')
+    /**
+     * Send command with options to NHC and decode the response
+     *
+     * @param String $command
+     * @param array $options
+     *
+     * @return mixed
+     * @throws NikoPluginException
+     */
+    protected function sendCommand($command, $options=[])
     {
-        $url = sprintf('%s/%s', $this->nikoweb, $url);
-        echo $url, PHP_EOL;
-
-        curl_setopt($this->connect, CURLOPT_URL, $url);
-        return curl_exec($this->connect);
-    }
-
-    protected function connectClose()
-    {
-        curl_close($this->connect);
+        $command = json_encode(array_merge(['cmd' => $command], $options));
+        $datas = json_decode($this->send($command), true);
+        return $datas['data'];
     }
 }

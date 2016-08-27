@@ -27,6 +27,7 @@ class MessagePlugin implements PluginInterface
         if($action['message']) {
             $message = $this->slack->createMessage();
             isset($action['to']) && $message->to($action['to']);
+            isset($action['icon']) && $message->setIcon($action['icon']);
 
             $message->send($action['message']);
         }
