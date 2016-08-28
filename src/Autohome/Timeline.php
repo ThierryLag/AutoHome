@@ -18,6 +18,7 @@ class Timeline
     const TIME_DUSK = 'dusk';
     const TIME_MIDNIGHT = 'midnight';
     const TIME_ALWAYS = 'always';
+    const TIME_WAKEUP = 'wakeup';
 
     protected $path;
     protected $longitude;
@@ -95,6 +96,11 @@ class Timeline
                         $timeline->execute($actions);
                         break;
 
+                    case self::TIME_WAKEUP:
+                        var_dump($actions);
+                        //$timeline->inRange();
+                        break;
+
                     case self::TIME_DAWN:
                         $timeline->isDawn() && $timeline->execute($actions);
                         break;
@@ -116,7 +122,16 @@ class Timeline
                         break;
 
                     default:
-                        $timeline->isTime($time) && $timeline->execute($actions);
+                        $time = $timeline->parseTime($time);
+                        if(is_array($time)) {
+                            $timeline->inRange($time) && $timeline->execute($actions, [
+                                'range' => $timeline->getDelta($time[0], $time[1]),
+                                'delta' => $timeline->getDelta($time[0]),
+                            ]);
+                        }
+                        else {
+                            $timeline->isTime($time) && $timeline->execute($actions);
+                        }
                 }
                 return false;
             });
@@ -195,6 +210,20 @@ class Timeline
         return self::isTime( (new \DateTime)->setTime(0, 0) );
     }
 
+    public function parseTime($time)
+    {
+        $parser = function($time) {
+            return \DateTime::createFromFormat('H:i', trim($time));
+        };
+
+        if(strpos($time, '-')) {
+            return array_map($parser, explode('-', $time));
+        }
+        else {
+            return $parser($time);
+        }
+    }
+
     /**
      * @param $time
      * @return bool
@@ -210,6 +239,29 @@ class Timeline
             : (new \DateTime)->format('H:i');
 
         return $time == $now;
+    }
+
+    public function inRange($start, $end=null)
+    {
+        if (is_array($start) && !$end) { list($start, $end) = $start; }
+
+        $now = isset($this->options['debug']['time'])
+            ? \DateTime::createFromFormat('H:i', $this->options['debug']['time'])
+            : new \DateTime();
+
+        return ($start <= $now && $now <= $end);
+    }
+
+    /**
+     * @param \DateTime $from
+     * @param \DateTime $to
+     * @return int
+     */
+    public function getDelta($from, $to=null)
+    {
+        $to = $to ?: new \DateTime();
+        $interval = $from->diff($to);
+        return 60 * $interval->format('%h') + $interval->format('%i');
     }
 
     // ================================================================================================================
@@ -291,15 +343,16 @@ class Timeline
      * and call the plugin to execute the action
      *
      * @param array $actions
+     * @param array $options
      * @return array
      */
-    private function execute($actions = [])
+    private function execute($actions = [], $options = [])
     {
         $instance = $this;
 
-        return array_filter(array_map(function($action) use ($instance) {
+        return array_filter(array_map(function($action) use ($instance, $options) {
             if ($plugin = $instance->registerPlugin($action['action'])) {
-                return $plugin->execute($action);
+                return $plugin->execute(array_merge($action, $options));
             }
             return false;
         }, $actions));
