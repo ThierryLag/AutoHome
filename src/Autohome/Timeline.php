@@ -129,11 +129,9 @@ class Timeline
                             $percent = max(1 , min(100, floor(100 * $delta / $range)));
 
                             $timeline->inRange($time) && $timeline->execute($actions, [
-                                'start' => $time[0],
-                                'end' => $time[1],
                                 'range' => $range,
                                 'delta' => $delta,
-                                'percent' => $percent,
+                                'percent' => $percent
                             ]);
                         }
                         else {
