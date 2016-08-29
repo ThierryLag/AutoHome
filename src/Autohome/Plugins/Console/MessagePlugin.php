@@ -15,7 +15,8 @@ class MessagePlugin implements PluginInterface
     public function execute($action)
     {
         if (isset($action['range'])) {
-            $action['calculated_value'] = round($action['start'] + (100 - $action['start'] - $action['end']) * $action['precent']);
+            $action['calculated_value'] = round($action['start']
+                + (100 - $action['start'] - $action['end']) * $action['percent']);
         }
 
         echo "Message : ", preg_replace_callback('/\{.*\}/', function($matches) use ($action) {

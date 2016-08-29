@@ -14,7 +14,8 @@ class DimmerPlugin extends NikoPlugin
         $value = isset($action['value']) ? $action['value'] : 0;
 
         if(isset($action['range']) && $action['range']) {
-            $value = round($action['start'] + (100 - $action['start'] - $action['end']) * $action['precent']);
+            $value = round($action['start']
+                   + (100 - $action['start'] - $action['end']) * $action['percent']);
         }
 
         /**
