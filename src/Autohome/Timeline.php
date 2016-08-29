@@ -124,9 +124,14 @@ class Timeline
                     default:
                         $time = $timeline->parseTime($time);
                         if(is_array($time)) {
+                            $range = $timeline->getDelta($time[0], $time[1]);
+                            $delta = $timeline->getDelta($time[0]);
+                            $percent = max(1 , min(100, floor(100 * $delta / $range)));
+
                             $timeline->inRange($time) && $timeline->execute($actions, [
-                                'range' => $timeline->getDelta($time[0], $time[1]),
-                                'delta' => $timeline->getDelta($time[0]),
+                                'range' => $range,
+                                'delta' => $delta,
+                                'percent' => $percent,
                             ]);
                         }
                         else {
