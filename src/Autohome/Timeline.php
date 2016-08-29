@@ -129,6 +129,8 @@ class Timeline
                             $percent = max(1 , min(100, floor(100 * $delta / $range)));
 
                             $timeline->inRange($time) && $timeline->execute($actions, [
+                                'start' => $time[0],
+                                'end' => $time[1],
                                 'range' => $range,
                                 'delta' => $delta,
                                 'percent' => $percent,
@@ -357,7 +359,7 @@ class Timeline
 
         return array_filter(array_map(function($action) use ($instance, $options) {
             if ($plugin = $instance->registerPlugin($action['action'])) {
-                return $plugin->execute(array_merge($action, $options));
+                    return $plugin->execute(array_merge($action, $options));
             }
             return false;
         }, $actions));

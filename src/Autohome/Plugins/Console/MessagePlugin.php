@@ -14,6 +14,8 @@ class MessagePlugin implements PluginInterface
 
     public function execute($action)
     {
+        $action['calculated_value'] = $action['start'] + (100 - $action['start'] - $action['end']) * $action['precent'];
+
         echo "Message : ", preg_replace_callback('/\{.*\}/', function($matches) use ($action) {
             $keys = substr($matches[0], 1, -1);
             return isset($action[$keys]) ? $action[$keys] : '-';
