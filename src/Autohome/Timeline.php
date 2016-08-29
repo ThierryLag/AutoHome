@@ -375,7 +375,9 @@ class Timeline
 
         /* @var Plugins\PluginInterface $pluginClass */
         if(class_exists($pluginClass) && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))) {
-            $this->plugins[$pluginName] = new $pluginClass($this->options[$vendor]);
+            $this->plugins[$pluginName] = new $pluginClass(
+                isset($this->options[$vendor]) ? $this->options[$vendor] : []
+            );
 
             return $this->plugins[$pluginName];
         }
