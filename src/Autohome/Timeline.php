@@ -96,11 +96,6 @@ class Timeline
                         $timeline->execute($actions);
                         break;
 
-                    case self::TIME_WAKEUP:
-                        var_dump($actions);
-                        //$timeline->inRange();
-                        break;
-
                     case self::TIME_DAWN:
                         $timeline->isDawn() && $timeline->execute($actions);
                         break;
@@ -175,8 +170,8 @@ class Timeline
      */
     public function isDawn()
     {
-        echo '---- DAWN [', $this->options[ self::TIME_DAWN ]->format('H:i'), '] ----', PHP_EOL;
-        return self::isTime($this->options[ self::TIME_DAWN ]);
+        return isset($this->options[ self::TIME_DAWN ])
+            && self::isTime($this->options[ self::TIME_DAWN ]);
     }
 
     /**
@@ -184,8 +179,8 @@ class Timeline
      */
     public function isSunrise()
     {
-        echo '---- SUNRISE [', $this->options[ self::TIME_SUNRISE ]->format('H:i'), '] ----', PHP_EOL;
-        return self::isTime($this->options[ self::TIME_SUNRISE ]);
+        return isset($this->options[ self::TIME_SUNRISE ])
+            && self::isTime($this->options[ self::TIME_SUNRISE ]);
     }
 
     /**
@@ -193,8 +188,8 @@ class Timeline
      */
     public function isSunset()
     {
-        echo '---- SUNSET [', $this->options[ self::TIME_SUNSET ]->format('H:i'), '] ----', PHP_EOL;
-        return self::isTime($this->options[ self::TIME_SUNSET ]);
+        return isset($this->options[ self::TIME_SUNSET ])
+            && self::isTime($this->options[ self::TIME_SUNSET ]);
     }
 
     /**
@@ -202,8 +197,8 @@ class Timeline
      */
     public function isDusk()
     {
-        echo '---- DUSK [', $this->options[ self::TIME_DUSK ]->format('H:i'), '] ----', PHP_EOL;
-        return self::isTime($this->options[ self::TIME_DUSK ]);
+        return isset($this->options[ self::TIME_SUNSET ])
+            && self::isTime($this->options[ self::TIME_DUSK ]);
     }
 
     /**
@@ -211,8 +206,8 @@ class Timeline
      */
     public function isMidnight()
     {
-        echo '---- MIDNIGHT [00:00] ----', PHP_EOL;
-        return self::isTime( (new \DateTime)->setTime(0, 0) );
+        return isset($this->options[ self::TIME_SUNSET ])
+            && self::isTime( (new \DateTime)->setTime(0, 0) );
     }
 
     public function parseTime($time)
