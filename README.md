@@ -43,3 +43,17 @@ The system also recognize these special words as specific times :
 * `always` : every minutes (be carefull with this one)
 
 _Your location must be define in `datas/config,php`._
+
+---
+
+# Dev
+
+To test the script, you can execute it with local PHP installation or using Docker.
+
+1. Build the image:
+    
+        docker build -t autohome:latest . 
+
+1. Run it:
+
+        docker run -t -i autohome:latest
