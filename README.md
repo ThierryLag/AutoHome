@@ -1,5 +1,7 @@
 # PHP cli for Home Automation (with NHC)
 
+[![Build Status](https://travis-ci.org/argael/AutoHome.svg?branch=master)](https://travis-ci.org/argael/AutoHome)
+
 > **Warning WIP !** Use it at you own risk.
 
 This PHP script must be call by cron job every minutes.
@@ -7,7 +9,7 @@ You can define actions in `datas/timeline.php` and,
 if the time match, the action will be execute.
 
 You can implement various plugin for these actions, 
-but my goal (for this project) is to use it with Smart Home and IoT particularly for Niko Home Control. 
+but my goal (for this project) is to use it with Smart Home and IoT, particularly for Niko Home Control. 
 
 ## Requirements
 
@@ -36,7 +38,7 @@ Use the syntax _hh:mm_ to define precise hour : `06:20`, `18:40`
 
 The system also recognize these special words as specific times :
 
-* `Midnight` : at 00:00
+* `midnight` : at 00:00
 * `sunrise` : at your location sunrise
 * `noon` : near 12:00 according your location
 * `sunset` : at your location sunset 
