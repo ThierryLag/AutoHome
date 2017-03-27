@@ -1,16 +1,19 @@
 ---
 # App general
 timezone: UTC
-lat: 50.0,
-lng: 5.0,
+lat: 50.0
+lng: 5.0
+clear: yes
+timeline: timeline.yml
 
-# Niko Plugin
+# NHC Plugin
 niko:
-    url: http://127.0.0.1/
+  address: 192.168.0.10
+  port: 8000
 
 # Slack Plugin
 slack:
-    hook: https://hooks.slack.com/...
+    hook: https://hooks.slack.com/services/{YOUR_TOKEN}
     options:
         username: Bot
         channel: #general

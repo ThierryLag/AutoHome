@@ -17,6 +17,15 @@ sunrise:
   - action: niko_switch
     id: 14
     value: on
+  - action: niko_switch
+    id: 12
+    value: on
+    if: time < dawn
+
+dawn:
+  - action: niko_switch
+    id: 12
+    value: off
 
 # -------------------------------------
 sunset:
