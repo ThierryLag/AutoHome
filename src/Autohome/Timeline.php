@@ -2,6 +2,8 @@
 namespace Autohome;
 
 use Autohome\Plugins\PluginException;
+use \M1\Vars\Vars;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
  * TimeLine Controller Script
@@ -10,6 +12,7 @@ class Timeline
 {
     const TIMEZONE_DEFAULT = 'Europe/Brussels';
     const TODAY_FILES_PATH = '/tmp';
+    const CONFIG_FIlES_PATH = '../../config';
 
     const TIME_DAWN = 'dawn';
     const TIME_SUNRISE = 'sunrise';
@@ -20,11 +23,13 @@ class Timeline
     const TIME_ALWAYS = 'always';
     const TIME_WAKEUP = 'wakeup';
 
+    protected $configPath;
     protected $path;
     protected $longitude;
     protected $latitude;
     protected $options;
     protected $plugins;
+    protected $timeline;
 
     protected static $instance = null;
 
@@ -46,11 +51,21 @@ class Timeline
      * Initiate the Timeline Controller with options
      * and grap day information from API or cached file
      *
-     * @param array $options
+     * @param array|string|null $options
      * @return self
      */
-    public function init($options=[])
+    private function init($options=null)
     {
+        $this->configPath = self::CONFIG_FIlES_PATH;
+
+        if (is_string($options)) {
+            $this->configPath = pathinfo($options)['dirname'];
+            $options = $this->loadConfigFromFile($options);
+        }
+        elseif (!is_array($options)) {
+            $options = $this->loadConfigFromFile($this->configPath . '/app.yml');
+        }
+
         $this->path = isset($options['path'])
             ? $options['path']
             : self::TODAY_FILES_PATH;
@@ -62,6 +77,10 @@ class Timeline
         $this->latitude = isset($options['lat'])
             ? $options['lat']
             : 0.0;
+
+        $this->timeline = isset($options['timeline'])
+            ? $options['timeline']
+            : 'timeline.yml';
 
         $this->plugins = [];
         $this->options = array_merge(
@@ -79,13 +98,14 @@ class Timeline
      *
      * @param array $timedActions
      */
-    public function start($timedActions = [])
+    public function start($timedActions=[])
     {
         try
         {
             $timeline = $this;
-            array_walk($timedActions, function($actions, $time) use ($timeline) {
+            $timedActions = $timedActions ?: $this->loadConfigFromFile($this->timeline);
 
+            array_walk($timedActions, function($actions, $time) use ($timeline) {
                 if (!$this->isActive($actions) || !$this->isCurrentDay($actions)) {
                     return false;
                 }
@@ -141,13 +161,29 @@ class Timeline
         }
     }
 
-    // ----------------------------------------------------------------------------------------------------------------
+    // ================================================================================================================
+
+    private function loadConfigFromFile($filePath)
+    {
+        try {
+            $config = new Vars($filePath, ['cache' => false]);
+            return $config->getContent();
+        }
+        catch (\Exception $e) {
+            echo 'File not found : ', $e->getFile(), ' : ', $e->getMessage(), PHP_EOL;
+        }
+
+        return [];
+    }
+
+    // ================================================================================================================
+
 
     /**
      * @param array $actions
      * @return bool
      */
-    public function isActive(&$actions)
+    private function isActive(&$actions)
     {
         return $this->validate($actions, 'disable', function($action) {
             return false === strpos('yes oui 1', strtolower($action));
@@ -158,7 +194,7 @@ class Timeline
      * @param array $actions
      * @return bool
      */
-    public function isCurrentDay(&$actions)
+    private function isCurrentDay(&$actions)
     {
         return $this->validate($actions, 'days', function($action) {
             return in_array(strtolower(date('D')), explode(' ', strtolower($action)));
@@ -168,7 +204,7 @@ class Timeline
     /**
      * @return bool
      */
-    public function isDawn()
+    private function isDawn()
     {
         return isset($this->options[ self::TIME_DAWN ])
             && self::isTime($this->options[ self::TIME_DAWN ]);
@@ -177,7 +213,7 @@ class Timeline
     /**
      * @return bool
      */
-    public function isSunrise()
+    private function isSunrise()
     {
         return isset($this->options[ self::TIME_SUNRISE ])
             && self::isTime($this->options[ self::TIME_SUNRISE ]);
@@ -186,7 +222,7 @@ class Timeline
     /**
      * @return bool
      */
-    public function isSunset()
+    private function isSunset()
     {
         return isset($this->options[ self::TIME_SUNSET ])
             && self::isTime($this->options[ self::TIME_SUNSET ]);
@@ -195,7 +231,7 @@ class Timeline
     /**
      * @return bool
      */
-    public function isDusk()
+    private function isDusk()
     {
         return isset($this->options[ self::TIME_SUNSET ])
             && self::isTime($this->options[ self::TIME_DUSK ]);
@@ -204,13 +240,13 @@ class Timeline
     /**
      * @return bool
      */
-    public function isMidnight()
+    private function isMidnight()
     {
         return isset($this->options[ self::TIME_SUNSET ])
             && self::isTime( (new \DateTime)->setTime(0, 0) );
     }
 
-    public function parseTime($time)
+    private function parseTime($time)
     {
         $parser = function($time) {
             return \DateTime::createFromFormat('H:i', trim($time));
@@ -228,7 +264,7 @@ class Timeline
      * @param $time
      * @return bool
      */
-    public function isTime($time)
+    private function isTime($time)
     {
         if($time instanceof \DateTime) {
             $time = $time->format('H:i');
@@ -241,7 +277,7 @@ class Timeline
         return $time == $now;
     }
 
-    public function inRange($start, $end=null)
+    private function inRange($start, $end=null)
     {
         if (is_array($start) && !$end) { list($start, $end) = $start; }
 
@@ -257,7 +293,7 @@ class Timeline
      * @param \DateTime $to
      * @return int
      */
-    public function getDelta($from, $to=null)
+    private function getDelta($from, $to=null)
     {
         $to = $to ?: new \DateTime();
         $interval = $from->diff($to);
@@ -351,8 +387,11 @@ class Timeline
         $instance = $this;
 
         return array_filter(array_map(function($action) use ($instance, $options) {
-            if ($plugin = $instance->registerPlugin($action['action'])) {
-                    return $plugin->execute(array_merge($action, $options));
+            if ($instance->validateCondition($action['action'])) {
+                return false;
+            }
+            elseif ($plugin = $instance->registerPlugin($action['action'])) {
+                return $plugin->execute(array_merge($action, $options));
             }
             return false;
         }, $actions));
@@ -364,7 +403,7 @@ class Timeline
      * @param $pluginName
      * @return null|Plugins\PluginInterface
      */
-    public function registerPlugin($pluginName)
+    private function registerPlugin($pluginName)
     {
         if(array_key_exists($pluginName, $this->plugins)) {
             return $this->plugins[$pluginName];
@@ -383,5 +422,17 @@ class Timeline
         }
 
         return null;
+    }
+
+    /**
+     * Validate the action execution ; make test if we have a condition "IF" in the definition
+     */
+    private function validateCondition($action)
+    {
+        $matches=[];
+        if (isset($action['if']) && preg_match("/(.*)([<!=>]{1,2})(.*)/", $action['if'], $matches)) {
+            //  TODO...
+        }
+        return true;
     }
 }
