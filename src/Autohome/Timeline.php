@@ -3,7 +3,6 @@ namespace Autohome;
 
 use Autohome\Plugins\PluginException;
 use \M1\Vars\Vars;
-use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
  * TimeLine Controller Script
@@ -80,7 +79,7 @@ class Timeline
 
         $this->timeline = isset($options['timeline'])
             ? $options['timeline']
-            : 'timeline.yml';
+            : '/timeline.yml';
 
         $this->plugins = [];
         $this->options = array_merge(
@@ -103,7 +102,7 @@ class Timeline
         try
         {
             $timeline = $this;
-            $timedActions = $timedActions ?: $this->loadConfigFromFile($this->timeline);
+            $timedActions = $timedActions ?: $this->loadConfigFromFile($this->configPath . '/' . $this->timeline);
 
             array_walk($timedActions, function($actions, $time) use ($timeline) {
                 if (!$this->isActive($actions) || !$this->isCurrentDay($actions)) {
@@ -426,6 +425,10 @@ class Timeline
 
     /**
      * Validate the action execution ; make test if we have a condition "IF" in the definition
+     *
+     * @param $action
+     *
+     * @return bool
      */
     private function validateCondition($action)
     {
