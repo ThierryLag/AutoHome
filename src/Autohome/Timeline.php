@@ -28,7 +28,8 @@ class Timeline
     protected $latitude;
     protected $options;
     protected $plugins;
-    protected $timeline;
+    protected $debug;
+    protected $actions;
 
     protected static $instance = null;
 
@@ -47,16 +48,15 @@ class Timeline
     }
 
     /**
-     * Initiate the Timeline Controller with options
+     * * Initiate the Timeline Controller with options
      * and grap day information from API or cached file
      *
-     * @param array|string|null $options
-     * @return self
+     * @param mixed $options
+     * @return $this
      */
-    private function init($options=null)
+    private function init($options=false)
     {
         $this->configPath = self::CONFIG_FIlES_PATH;
-
         if (is_string($options)) {
             $this->configPath = pathinfo($options)['dirname'];
             $options = $this->loadConfigFromFile($options);
@@ -65,27 +65,22 @@ class Timeline
             $options = $this->loadConfigFromFile($this->configPath . '/app.yml');
         }
 
-        $this->path = isset($options['path'])
-            ? $options['path']
-            : self::TODAY_FILES_PATH;
-
-        $this->longitude = isset($options['lng'])
-            ? $options['lng']
-            : 0.0;
-
-        $this->latitude = isset($options['lat'])
-            ? $options['lat']
-            : 0.0;
-
-        $this->timeline = isset($options['timeline'])
-            ? $options['timeline']
-            : '/timeline.yml';
+        // Default Parameters
+        $options = array_merge([
+            'path' => self::TODAY_FILES_PATH,
+            'lng' => 0.0,
+            'lat' => 0.0,
+            'timeline' => '/timeline.yml',
+            'debug' => false
+        ], $options);
 
         $this->plugins = [];
-        $this->options = array_merge(
-            $this->loadDatas(isset($options['clear']) && $options['clear']),
-            $options
-        );
+        $this->path = $options['path'];
+        $this->longitude = $options['lng'];
+        $this->latitude = $options['lat'];
+        $this->debug = $options['debug'];
+        $this->options = array_merge($this->loadDatas(isset($options['clear']) && $options['clear']), $options);
+        $this->actions = $this->loadConfigFromFile($this->configPath . '/' . $options['timeline']);
 
         return $this;
     }
@@ -93,18 +88,14 @@ class Timeline
     // ----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Start the timeline pasring
-     *
-     * @param array $timedActions
+     * Start the timeline pasring*
      */
-    public function start($timedActions=[])
+    public function start()
     {
-        try
-        {
+        try {
             $timeline = $this;
-            $timedActions = $timedActions ?: $this->loadConfigFromFile($this->configPath . '/' . $this->timeline);
 
-            array_walk($timedActions, function($actions, $time) use ($timeline) {
+            array_walk($this->actions, function($actions, $time) use ($timeline) {
                 if (!$this->isActive($actions) || !$this->isCurrentDay($actions)) {
                     return false;
                 }
@@ -158,6 +149,12 @@ class Timeline
         catch (PluginException $e) {
             echo 'ERROR: ', $e->getFile(), ' : ', $e->getMessage(), PHP_EOL;
         }
+    }
+
+    public function test($time)
+    {
+        $this->debug = $time;
+        $this->start();
     }
 
     // ================================================================================================================
@@ -269,9 +266,9 @@ class Timeline
             $time = $time->format('H:i');
         }
 
-        $now = isset($this->options['debug']['time'])
-            ? $this->options['debug']['time']
-            : (new \DateTime)->format('H:i');
+        $now = $this->debug instanceof \DateTime
+                ? $this->debug->format('H:i')
+                : ( $this->debug ?: (new \DateTime)->format('H:i') );
 
         return $time == $now;
     }
@@ -386,12 +383,19 @@ class Timeline
         $instance = $this;
 
         return array_filter(array_map(function($action) use ($instance, $options) {
-            if ($instance->validateCondition($action['action'])) {
+            if($instance->debug) {
+                $status = $instance->invalidCondition($action['action'])
+                    ? 'Invalid condition'
+                    : 'Execute';
+                echo $instance->debug, ' - ', $status, ' : ', $action['action'], PHP_EOL;
+
                 return false;
             }
-            elseif ($plugin = $instance->registerPlugin($action['action'])) {
+
+            if (!$instance->invalidCondition($action['action']) && $plugin = $instance->registerPlugin($action['action'])) {
                 return $plugin->execute(array_merge($action, $options));
             }
+
             return false;
         }, $actions));
     }
@@ -430,12 +434,12 @@ class Timeline
      *
      * @return bool
      */
-    private function validateCondition($action)
+    private function invalidCondition($action)
     {
         $matches=[];
         if (isset($action['if']) && preg_match("/(.*)([<!=>]{1,2})(.*)/", $action['if'], $matches)) {
             //  TODO...
         }
-        return true;
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 <?php
-//error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE);
 include_once __DIR__ . '/../vendor/autoload.php';
 
 use \Autohome\Timeline;
