@@ -9,6 +9,9 @@
 # Sublime Text
 *.sublime-*
 
+# Visual Code
+.vscode
+
 # Composer
 vendor
 
