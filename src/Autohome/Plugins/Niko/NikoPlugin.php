@@ -77,7 +77,7 @@ abstract class NikoPlugin implements PluginInterface
 
         $response = '';
         do {
-            $bytes = socket_recv($this->socket, $out, 256, 0);
+            $bytes = socket_recv($this->socket, $out, 1024, 0);
             $response .= trim($out);
         }
         while ($bytes == 0 || $bytes == 256);
