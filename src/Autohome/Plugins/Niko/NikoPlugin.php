@@ -18,6 +18,7 @@ abstract class NikoPlugin implements PluginInterface
 
     /**
      * @param array $options
+     * @throws NikoPluginException
      */
     public function __construct($options=[])
     {

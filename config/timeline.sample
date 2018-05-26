@@ -5,6 +5,8 @@ sunrise:
   - action: niko_switch
     id: 12
     value: off
+  - action: http
+    address: "http://192.168.0.123/on"
 
 # -------------------------------------
 '06:30':

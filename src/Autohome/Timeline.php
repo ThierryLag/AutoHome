@@ -38,13 +38,15 @@ class Timeline
     /**
      * Get the instance of Timeline Controller
      *
-     * @param array $options
+     * @param array|string $options
      * @return self
      */
     public static function load($options=[])
     {
-        $instance = static::$instance ?: new static;
-        return $instance->init($options);
+        if (!static::$instance) {
+            static::$instance = (new static)->init($options);
+        }
+        return static::$instance;
     }
 
     /**
@@ -384,15 +386,13 @@ class Timeline
 
         return array_filter(array_map(function($action) use ($instance, $options) {
             if($instance->debug) {
-                $status = $instance->invalidCondition($action['action'])
-                    ? 'Invalid condition'
-                    : 'Execute';
+                $status = $instance->valid($action['action']) ? 'Execute' : 'Invalid condition for';
                 echo $instance->debug, ' - ', $status, ' : ', $action['action'], PHP_EOL;
 
                 return false;
             }
 
-            if (!$instance->invalidCondition($action['action']) && $plugin = $instance->registerPlugin($action['action'])) {
+            if ($instance->valid($action['action']) && $plugin = $instance->registerPlugin($action['action'])) {
                 return $plugin->execute(array_merge($action, $options));
             }
 
@@ -434,12 +434,14 @@ class Timeline
      *
      * @return bool
      */
-    private function invalidCondition($action)
+    private function valid($action)
     {
         $matches=[];
-        if (isset($action['if']) && preg_match("/(.*)([<!=>]{1,2})(.*)/", $action['if'], $matches)) {
-            //  TODO...
+        if (isset($action['if'])) {
+            preg_match("/(.*)([<!=>]{1,2})(.*)/", $action['if'], $matches);
+
+            // TODO...
         }
-        return false;
+        return true;
     }
 }

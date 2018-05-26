@@ -17,6 +17,8 @@
     "maknz/slack": "^1.7"
   },
   "autoload": {
-    "psr-4": {"Autohome\\": "src/Autohome/"}
+    "psr-4": {
+      "Autohome\\": "src/Autohome/"
+    }
   }
 }
