@@ -413,7 +413,7 @@ class Timeline
         }
 
         list($vendor, $plugin) = explode('_', $pluginName);
-        $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin)) ;
+        $pluginClass = sprintf('\Autohome\Plugins\%s\%sPlugin', ucfirst($vendor), ucfirst($plugin ?: $vendor)) ;
 
         /* @var Plugins\PluginInterface $pluginClass */
         if(class_exists($pluginClass) && in_array(Plugins\PluginInterface::class, class_implements($pluginClass))) {

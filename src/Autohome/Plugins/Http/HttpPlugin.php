@@ -23,7 +23,7 @@ class HttpPlugin implements PluginInterface
     public function execute($action)
     {
         if($action['address']) {
-            $this->guzzle->getAsync($action['address'], []);
+            $this->guzzle->get($action['address'], []);
         }
         return null;
     }
