@@ -10,7 +10,7 @@ use \M1\Vars\Vars;
 class Timeline
 {
     const TIMEZONE_DEFAULT = 'Europe/Brussels';
-    const TODAY_FILES_PATH = '/tmp';
+    const TODAY_FILES_PATH = '../../config/days/';
     const CONFIG_FIlES_PATH = '../../config';
 
     const TIME_DAWN = 'dawn';
