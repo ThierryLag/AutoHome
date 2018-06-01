@@ -10,7 +10,7 @@ use \M1\Vars\Vars;
 class Timeline
 {
     const TIMEZONE_DEFAULT = 'Europe/Brussels';
-    const TODAY_FILES_PATH = '../../config/days/';
+    const TODAY_FILES_PATH = '../../config/days';
     const CONFIG_FIlES_PATH = '../../config';
 
     const TIME_DAWN = 'dawn';
@@ -319,7 +319,7 @@ class Timeline
      */
     private function loadDatas($useCache = false)
     {
-        $todayFile = sprintf('%s/%s.json', $this->path, date('Ymd')) ;
+        $todayFile = sprintf('%s/%s.json', realpath($this->path), date('Ymd')) ;
         $timeZone = (new \DateTime())->getTimezone();
 
         if ($useCache && file_exists($todayFile)) {
