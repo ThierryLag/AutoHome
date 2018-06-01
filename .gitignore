@@ -17,3 +17,4 @@ vendor
 
 # Personnal settings
 config/*yml
+config/days/*

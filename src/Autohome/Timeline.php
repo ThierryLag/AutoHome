@@ -69,7 +69,7 @@ class Timeline
 
         // Default Parameters
         $options = array_merge([
-            'path' => self::TODAY_FILES_PATH,
+            'path' => realpath(__DIR__ . '/' .  self::TODAY_FILES_PATH),
             'lng' => 0.0,
             'lat' => 0.0,
             'timeline' => '/timeline.yml',
