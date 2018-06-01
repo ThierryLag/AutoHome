@@ -319,7 +319,7 @@ class Timeline
      */
     private function loadDatas($useCache = false)
     {
-        $todayFile = sprintf('%s/%s.json', realpath($this->path), date('Ymd')) ;
+        $todayFile = sprintf('%s/%s.json', $this->path, date('Ymd')) ;
         $timeZone = (new \DateTime())->getTimezone();
 
         if ($useCache && file_exists($todayFile)) {
