@@ -1,11 +1,9 @@
 # PHP cli for Home Automation (with NHC)
 
-[![Build Status](https://travis-ci.org/argael/AutoHome.svg?branch=master)](https://travis-ci.org/argael/AutoHome)
-
 > **Warning WIP !** Use it at you own risk.
 
 This PHP script must be call by cron job every minutes.
-You can define actions in `datas/timeline.php` and, 
+You can define actions in `config/timeline.yml` and, 
 if the time match, the action will be execute.
 
 You can implement various plugin for these actions, 
@@ -13,22 +11,22 @@ but my goal (for this project) is to use it with Smart Home and IoT, particularl
 
 ## Requirements
 
-* PHP 5.6+
+* PHP 7.0+
 
 ## Installation
 
 * Clone the project on your server.
-* Create configuration files `datas/config.php` and `datas/timeline.php` 
+* Create configuration files `config/config.yml` and `config/timeline.yml` 
     You can copy and rename the sample files `.sample`
-* Add an entry to your crontab to start the automation.
+* Add an entry to your crontab to start the automation: `crontab -e`
 
-        * * * * * php /path_to_project/cli/cron.php >> /path_to_project/logs/cron.log 2>&1
+        * * * * * php /path_to_project/cli/cron.php >> "/path_to_project/log/$(date +\%Y-\%m-\%d).log" 2>&1
 
 * Restart cron service
 
 ## Usage
 
-Edit the `datas/timeline.php` to definie the sequence you want.
+Edit the `config/timeline.yml` to definie the sequence you want.
 
 ### Regular Hours
 
@@ -44,18 +42,4 @@ The system also recognize these special words as specific times :
 * `sunset` : at your location sunset 
 * `always` : every minutes (be carefull with this one)
 
-_Your location must be define in `datas/config,php`._
-
----
-
-# Dev
-
-To test the script, you can execute it with local PHP installation or using Docker.
-
-1. Build the image:
-    
-        docker build -t autohome:latest . 
-
-1. Run it:
-
-        docker run -t -i autohome:latest
+_Your location must be define in `config/app.yml`._
