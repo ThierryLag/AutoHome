@@ -295,7 +295,8 @@ class Timeline
     {
         $to = $to ?: new \DateTime();
         $interval = $from->diff($to);
-        return 60 * $interval->format('%h') + $interval->format('%i');
+        return (int) $interval->format('%h') * 60
+             + (int) $interval->format('%i');
     }
 
     // ================================================================================================================
@@ -323,17 +324,17 @@ class Timeline
         $timeZone = (new \DateTime())->getTimezone();
 
         if ($useCache && file_exists($todayFile)) {
-            $datas = (array) json_decode(file_get_contents($todayFile));
-            array_walk($datas, function(&$date) use ($timeZone) {
+            $data = (array) json_decode(file_get_contents($todayFile));
+            array_walk($data, function(&$date) use ($timeZone) {
                 $date = new \DateTime($date->date, $timeZone);
             });
         }
         else {
-            $datas = $this->callApi();
-            file_put_contents($todayFile, json_encode($datas));
+            $data = $this->callApi();
+            file_put_contents($todayFile, json_encode($data));
         }
 
-        return $datas;
+        return $data;
     }
 
     private function callApi()
