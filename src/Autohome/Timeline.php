@@ -29,6 +29,7 @@ class Timeline
     protected $options;
     protected $plugins;
     protected $debug;
+    protected $now;
     protected $actions;
 
     protected static $instance = null;
@@ -153,10 +154,34 @@ class Timeline
         }
     }
 
-    public function test($time)
+    public function test($time, $debug=true)
     {
-        $this->debug = $time;
+        $this->now = $time;
+        $this->debug = $debug;
         $this->start();
+    }
+
+    public static function specialTimes()
+    {
+        $times = [
+            self::TIME_ALWAYS,
+            self::TIME_SUNRISE,
+            self::TIME_DAWN,
+            self::TIME_NOON,
+            self::TIME_DUSK,
+            self::TIME_SUNSET,
+            self::TIME_MIDNIGHT,
+            self::TIME_WAKEUP
+        ];
+
+        $options = self::load()->options;
+
+        return array_reduce($times, function($times, $moment) use ($options) {
+            if (isset($options[$moment])) {
+                $times[$moment] = $options[$moment];
+            }
+            return $times;
+        }, []);
     }
 
     // ================================================================================================================
@@ -264,15 +289,19 @@ class Timeline
      */
     private function isTime($time)
     {
+        $now = (new \DateTime)->format('H:i');
+
         if($time instanceof \DateTime) {
             $time = $time->format('H:i');
         }
 
-        $now = $this->debug instanceof \DateTime
-                ? $this->debug->format('H:i')
-                : ( $this->debug ?: (new \DateTime)->format('H:i') );
+        if ($this->now) {
+            $now = $this->now instanceof \DateTime
+                ? $this->now->format('H:i')
+                : $this->now;
+        }
 
-        return $time == $now;
+        return $time === $now;
     }
 
     private function inRange($start, $end=null)
@@ -380,6 +409,8 @@ class Timeline
      * @param array $actions
      * @param array $options
      * @return array
+     *
+     * @throws PluginException
      */
     private function execute($actions = [], $options = [])
     {
@@ -388,7 +419,7 @@ class Timeline
         return array_filter(array_map(function($action) use ($instance, $options) {
             if($instance->debug) {
                 $status = $instance->valid($action['action']) ? 'Execute' : 'Invalid condition for';
-                echo $instance->debug, ' - ', $status, ' : ', $action['action'], PHP_EOL;
+                echo $instance->now, ' - ', $status, ' : ', $action['action'], PHP_EOL;
 
                 return false;
             }

@@ -56,6 +56,12 @@ abstract class NikoPlugin implements PluginInterface
         return $this;
     }
 
+    /**
+     * @param array $action
+     *
+     * @return bool|mixed|string
+     * @throws NikoPluginException
+     */
     public function execute($action)
     {
         $id = $this->id($action);
