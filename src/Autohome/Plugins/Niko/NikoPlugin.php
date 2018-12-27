@@ -13,6 +13,7 @@ use Autohome\Plugins\Niko\Exceptions\NikoPluginException;
 abstract class NikoPlugin implements PluginInterface
 {
     protected $socket;
+    protected $values = [];
 
     // ----------------------------------------------------------------------------------------------------------------
 
@@ -57,7 +58,11 @@ abstract class NikoPlugin implements PluginInterface
 
     public function execute($action)
     {
-        return true;
+        $id = $this->id($action);
+        $value = $this->value($action);
+
+        $response = $this->sendCommand('executeactions', ['id' => $id, 'value1' => $value]);
+        return ($response && $response['error'] == 0) ? $value : false;
     }
 
     // ================================================================================================================
@@ -100,5 +105,32 @@ abstract class NikoPlugin implements PluginInterface
         $command = json_encode(array_merge(['cmd' => $command], $options));
         $datas = json_decode($this->send($command), true);
         return $datas['data'];
+    }
+
+    protected function id($value)
+    {
+        if (is_array($value)) {
+            if(!isset($value['id'])) {
+                throw new NikoPluginException('Action must have an ID.');
+            }
+            $value = $value['id'];
+        }
+
+        return $value;
+    }
+
+    protected function value($value)
+    {
+        if (is_array($value)) {
+            if(!isset($value['value'])) {
+                throw new NikoPluginException('Action switch must have a value');
+            }
+            $value = $value['value'];
+        }
+
+        $value = strtolower($value);
+
+        return isset($this->values[$value])
+            ? $this->values[$value] : $value;
     }
 }

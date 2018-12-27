@@ -14,6 +14,7 @@ interface PluginInterface
      *
      * @param array $action
      * @return boolean
+     * @throws PluginException
      */
     public function execute($action);
 }
